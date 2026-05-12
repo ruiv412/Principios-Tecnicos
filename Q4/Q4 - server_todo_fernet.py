@@ -31,7 +31,7 @@ class TodoList:
         cipher = Fernet(key)
         with open('todo_list.fernet', 'w') as file:
             for i, item in enumerate(self.items):
-                plain_item = f"{item.title},{item.description},{item.completed}"
+                plain_item = json.dumps({"title": item.title, "description": item.description, "completed": item.completed})
                 c_item = cipher.encrypt(plain_item.encode()).decode()
                 file.write(f"{c_item}\n")
 
@@ -63,8 +63,8 @@ try:
             print("going to decrypt: ", c_item)
             plain_item = cipher.decrypt(c_item.encode()).decode()
             print("decrypted: ", plain_item)
-            title, description, completed = plain_item.split(",")
-            todo_list.add_item(title, description)
+            item_data = json.loads(plain_item)
+            todo_list.add_item(item_data["title"], item_data["description"])
 except FileNotFoundError:
     todo_list = TodoList()
 
