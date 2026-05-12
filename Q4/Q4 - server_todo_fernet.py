@@ -4,18 +4,18 @@ from cryptography.fernet import Fernet
 
 # This class represents a single todo item
 class TodoItem:
-    def __init__(self, title, description):
+    def __init__(self, title, description, completed=False):
         self.title = title
         self.description = description
-        self.completed = False
+        self.completed = completed
 
 # This class represents a list of TodoItems
 class TodoList:
     def __init__(self):
         self.items = []
 
-    def add_item(self, title, description):
-        item = TodoItem(title, description)
+    def add_item(self, title, description, completed=False):
+        item = TodoItem(title, description, completed)
         self.items.append(item)
 
     def complete_item(self, index):
@@ -31,7 +31,7 @@ class TodoList:
         cipher = Fernet(key)
         with open('todo_list.fernet', 'w') as file:
             for i, item in enumerate(self.items):
-                plain_item = json.dumps({"title": item.title, "description": item.description, "completed": item.completed})
+                plain_item = f"{item.title},{item.description},{item.completed}"
                 c_item = cipher.encrypt(plain_item.encode()).decode()
                 file.write(f"{c_item}\n")
 
@@ -63,8 +63,9 @@ try:
             print("going to decrypt: ", c_item)
             plain_item = cipher.decrypt(c_item.encode()).decode()
             print("decrypted: ", plain_item)
-            item_data = json.loads(plain_item)
-            todo_list.add_item(item_data["title"], item_data["description"])
+            title, description, completed = plain_item.split(",")
+            completed_flag = completed == 'True'
+            todo_list.add_item(title, description, completed_flag)
 except FileNotFoundError:
     todo_list = TodoList()
 
